@@ -1,29 +1,6 @@
-package org.cryptable.tinyca.mngmnt
+package org.cryptable.tinyca.mngmnt.profile
 
-import groovy.json.JsonBuilder
-
-/**
- * Profile in JSOM format
- */
-enum TimeConstraintsChoice {
-
-    minMaxDateTime("MinMaxDateTime"),
-
-    fixedDateTimePeriod("FixedDateTimePeriod"),
-
-    fixedBeginEndDateTime("FixedBeginEndDateTime"),
-
-    fixedDatePeriodFixedTime("FixedDatePeriodFixedTime")
-
-    private final String value;
-
-    TimeConstraintsChoice(String value) {
-        this.value = value
-    }
-
-    String value() { return this.value }
-}
-
+import groovy.json.JsonSlurper
 
 /**
  * Kind of date constraint
@@ -32,7 +9,7 @@ enum TimeConstraintsChoice {
  * 3: fixed beginDate and endData
  * 4: fixed date period (+years, +months, +weeks, +days) and fixed begin and end times (00.00.00)
  *
- * dateConstraint parameter
+ * profile.timeConstraints.dateConstraint parameter
  */
 
 /**
@@ -42,7 +19,7 @@ enum TimeConstraintsChoice {
  * 3: fixed begin date and time
  * 4: the time values are used as begin time
  *
- * beginTimestamp parameter
+ * profile.timeConstraints.beginTimestamp parameter
  */
 
 /**
@@ -52,7 +29,7 @@ enum TimeConstraintsChoice {
  * 3: fixed end date and time
  * 4: the time values are used as end time
  *
- * endTimestamp parameter
+ * profile.timeConstraints.endTimestamp parameter
  */
 
 /**
@@ -62,7 +39,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: period definitio for years with fixed begin time and end time
  *
- * periodYears parameter
+ * profile.timeConstraints.periodYears parameter
  */
 
 /**
@@ -72,7 +49,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: period definitio for months with fixed begin time and end time
  *
- * periodMonths parameter
+ * profile.timeConstraints.periodMonths parameter
  */
 
 /**
@@ -82,7 +59,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: period definition for weeks with fixed begin time and end time
  *
- * periodWeeks parameter
+ * profile.timeConstraints.periodWeeks parameter
  */
 
 /**
@@ -92,7 +69,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: Period definition for days with fixed begin time and end time
  *
- * periodDays parameter
+ * profile.timeConstraints.periodDays parameter
  */
 
 /**
@@ -102,7 +79,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: Period definition for hours with fixed begin time and rounded upper end time
  *
- * periodHours paremeter
+ * profile.timeConstraints.periodHours paremeter
  */
 
 /**
@@ -112,7 +89,7 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: Period definition for minutes with fixed begin time and rounded upper end time
  *
- * periodMinutes parameter
+ * profile.timeConstraints.periodMinutes parameter
  */
 
 /**
@@ -122,103 +99,8 @@ enum TimeConstraintsChoice {
  * 3: Not used
  * 4: Period definition for seconds with fixed begin time and rounded upper end time
  *
- * periodSecond
+ * profile.timeConstraints.periodSeconds parameter
  */
-
-enum KeyAlgorithm {
-
-    ECDSA("ECDSA"),
-
-    GOST3410("GOST3410"),
-
-    RSA("RSA")
-
-    private final String value;
-
-    KeyAlgorithm(String value) {
-        this.value = value
-    }
-
-    String value() { return this.value }
-}
-
-enum SignatureAlgorithm {
-
-    SHA1withECDSA("SHA1withECDSA"),
-
-    SHA256withECDSA("SHA256withECDSA"),
-
-    SHA384withECDSA("SHA384withECDSA"),
-
-    SHA512withECDSA("SHA512withECDSA"),
-
-    GOST3411withGOST3410("GOST3411withGOST3410"),
-
-    GOST3411withECGOST3410("GOST3411withECGOST3410"),
-
-    SHA1withRSA("SHA1withRSA"),
-
-    SHA256withRSA("SHA256withRSA"),
-
-    SHA384withRSA("SHA384withRSA"),
-
-    SHA512withRSA("SHA512withRSA"),
-
-    RIPEMD128withRSA("RIPEMD128withRSA"),
-
-    RIPEMD160withRSA("RIPEMD160withRSA"),
-
-    RIPEMD256withRSA("RIPEMD256withRSA")
-
-    private final String value;
-
-    SignatureAlgorithm(String value) {
-        this.value = value
-    }
-
-    String value() { return this.value }
-}
-
-enum KeyLength {
-
-    RSA1024("1024"),
-
-    RSA2048("2048"),
-
-    RSA4096("4096"),
-
-    RSA8192("8192"),
-
-    RSA16384("16384"),
-
-    secp192r1("secp192r1"),
-
-    secp224r1("secp224r1"),
-
-    secp256r1("secp256r1"),
-
-    secp384r1("secp384r1"),
-
-    secp521r1("secp521r1"),
-
-    ECGOST_CRYPTOPR_A("GostR3410-2001-CryptoPro-A"),
-
-    ECGOST_CRYPTOPR_B("GostR3410-2001-CryptoPro-B"),
-
-    ECGOST_CRYPTOPR_C("GostR3410-2001-CryptoPro-C"),
-
-    ECGOST_CRYPTOPR_XchA("GostR3410-2001-CryptoPro-XchA"),
-
-    ECGOST_CRYPTOPR_XchB("GostR3410-2001-CryptoPro-XchB")
-
-    private final String value;
-
-    KeyLength(String value) {
-        this.value = value
-    }
-
-    String value() { return this.value }
-}
 
 /**
  * Key generation algorithm:
@@ -227,29 +109,7 @@ enum KeyLength {
  * - GOST3410
  * - RSA
  *
- * keyAlgorithm parameter
- */
-
-
-/**
- * Hash generation algorithm for signature: SHA1, SHA256, SHA512
- * Must be in relation to the keyAlgorithm of the CA
- *
- * - SHA1withECDSA
- * - SHA256withECDSA
- * - SHA384withECDSA
- * - SHA512withECDSA
- * - GOST3411withGOST3410
- * - GOST3411withECGOST3410
- * - SHA1withRSA
- * - SHA256withRSA
- * - SHA384withRSA
- * - SHA512withRSA
- * - RIPEMD128withRSA
- * - RIPEMD160withRSA
- * - RIPEMD256withRSA
- *
- * signatureAlgorithm
+ * profile.certificate[x].algorithmSettings.keyAlgorithm parameter
  */
 
 /**
@@ -291,5 +151,75 @@ enum KeyLength {
  *
  *   GOST has a fixed key length
  *
- * keyLength parameter
+ * profile.certificate[x].algorithmSettings.keyLength parameter
  */
+
+/**
+ * Hash generation algorithm for signature: SHA1, SHA256, SHA512
+ * Must be in relation to the keyAlgorithm of the CA
+ *
+ * - SHA1withECDSA
+ * - SHA256withECDSA
+ * - SHA384withECDSA
+ * - SHA512withECDSA
+ * - GOST3411withGOST3410
+ * - GOST3411withECGOST3410
+ * - SHA1withRSA
+ * - SHA256withRSA
+ * - SHA384withRSA
+ * - SHA512withRSA
+ * - RIPEMD128withRSA
+ * - RIPEMD160withRSA
+ * - RIPEMD256withRSA
+ *
+ * profile.certificate[x].algorithmSettings.signatureAlgorithm (obligatory)
+ */
+
+/**
+ * Extensions of the certificate
+ * These are the configuration of all the common extensions for a certificate
+ * according to RFC5280
+ *
+ * - Authority Key Identifier
+ *      profile.certificate[x].extensions.authorityKeyIndentifier
+ * - Subject Key Identifier
+ *      profile.certificate[x].extensions.subjectKeyIdentifier
+ * - Key Usage
+ *      profile.certificate[x].extensions.keyUsage
+ * - Certificate Policies
+ *      profile.certificate[x].extensions.certificatePolicies
+ * - Policy Mappings
+ *      profile.certificate[x].extensions.policyMapping
+ * - Subject Alternative Name
+ *      profile.certificate[x].extensions.subjectAlternativeName
+ * - Issuer Alternative Name
+ *      profile.certificate[x].extensions.issuerAlternativeName
+ * - Subject Directory Attributes
+ *      profile.certificate[x].extensions.subjectDirectoryAttributes
+ * - Basic Constraints
+ *      profile.certificate[x].extensions.basicConstraints
+ * - Name Constraints
+ *      profile.certificate[x].extensions.nameConstraints
+ * - Policy Constraints
+ *      profile.certificate[x].extensions.policyConstraints
+ * - Extended Key Usage
+ *      profile.certificate[x].extensions.extendedKeyUsage
+ * - CRL Distribution Points
+ *      profile.certificate[x].extensions.crlDistributionPoints
+ * - Inhibit anyPolicy
+ *      profile.certificate[x].extensions.inhibitAnyPolicy
+ * - Freshest CRL
+ *      profile.certificate[x].extensions.freshestCRL
+ * - Authority Information Access
+ *      profile.certificate[x].extensions.authorityInformationAccess
+ * - Subject Information Access
+ *      profile.certificate[x].extensions.subjectInformationAccess
+ *
+ */
+
+/**
+ * Handles Profile checking functions, templates and signature generation
+ */
+class Profile {
+
+}

@@ -1,7 +1,6 @@
 package org.cryptable.tinyca.mngmnt
 
 import groovy.time.TimeCategory
-import io.jsonwebtoken.SignatureAlgorithm
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.X509v3CertificateBuilder
@@ -9,6 +8,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.operator.ContentSigner
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
+import org.cryptable.tinyca.mngmnt.profile.KeyAlgorithm
 
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -17,8 +17,6 @@ import java.security.Security
 import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
 import java.security.spec.ECGenParameterSpec
-
-import io.jsonwebtoken.Jwts
 
 /**
  * PKIService which performs the cryptographic operations
