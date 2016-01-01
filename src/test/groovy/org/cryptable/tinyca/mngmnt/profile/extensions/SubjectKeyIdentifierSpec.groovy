@@ -16,6 +16,7 @@ import spock.lang.Specification
 
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.Security
 
@@ -24,15 +25,9 @@ import java.security.Security
  *
  * Created by davidtillemans on 27/12/15.
  */
-class SubjectKeyIdentifierSpec extends Specification{
+class SubjectKeyIdentifierSpec extends Specification implements TestCATrait {
 
     def jsonSlurper = new JsonSlurper()
-
-    X509CertificateHolder caCertificate
-
-    ContentSigner caSigner
-
-    KeyPairGenerator keyPairGenerator
 
     /**
      * Create a simple selfsigned CA
@@ -40,20 +35,7 @@ class SubjectKeyIdentifierSpec extends Specification{
      * @return
      */
     def setup() {
-        Security.addProvider(new BouncyCastleProvider());
-        keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
-        keyPairGenerator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        caSigner  = new JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build(keyPair.private);
-        def name = new X500Name("cn=CA, o=Cryptable, ou=TinyCA")
-        X509v3CertificateBuilder x509v3CertificateBuilder = new JcaX509v3CertificateBuilder(
-                name,
-                new BigInteger(1),
-                new Date(2010, 10, 22, 00, 00, 00), new Date(2030, 10, 22, 00, 00, 00),
-                name,
-                keyPair.public)
-        caCertificate = x509v3CertificateBuilder.build(caSigner)
-
+        caInit()
     }
 
     def cleanup() {
@@ -139,14 +121,7 @@ class SubjectKeyIdentifierSpec extends Specification{
 
     void "create encoded SubjectKeyIdentifier with SHA1 algorithm"() {
         given: "An SubjectKeyIdentifier"
-        KeyPair subjectKeyPair = keyPairGenerator.generateKeyPair()
-        X509v3CertificateWrapper subjectX509 = new X509v3CertificateWrapper(caCertificate,
-                BigInteger.valueOf(1000L),
-                new Date(2010,01, 01, 00, 00, 00),
-                new Date(2020,12, 31, 23, 59, 59),
-                Locale.getDefault(),
-                new X500Name("cn=Test User, ou=TinyCA, o=Cryptable, c=be"),
-                new SubjectPublicKeyInfo(ASN1Sequence.getInstance(subjectKeyPair.public.encoded)))
+        X509v3CertificateWrapper subjectX509 = createTestCertificate()
         SubjectKeyIdentifier subjectKeyIdentifier = new SubjectKeyIdentifier(
                 critical: false,
                 sha1KeyIdentifier: true
@@ -159,25 +134,17 @@ class SubjectKeyIdentifierSpec extends Specification{
         then:"Verify subject key Identifier in certificate"
         org.bouncycastle.asn1.x509.Extension extension = subjectCert.getExtension(
                 org.bouncycastle.asn1.x509.Extension.subjectKeyIdentifier)
-        assert extension.critical == false
+        assert !extension.critical
         assert extension.extnValue
 
         org.bouncycastle.asn1.x509.SubjectKeyIdentifier subjectKeyId =
                 new org.bouncycastle.asn1.x509.SubjectKeyIdentifier(ASN1OctetString.getInstance(extension.extnValue.octets))
         assert subjectKeyId.keyIdentifier.size() == 20
-
     }
 
     void "create encoded SubjectKeyIdentifier with truncated SHA1 algorithm"() {
         given: "An SubjectKeyIdentifier"
-        KeyPair subjectKeyPair = keyPairGenerator.generateKeyPair()
-        X509v3CertificateWrapper subjectX509 = new X509v3CertificateWrapper(caCertificate,
-                BigInteger.valueOf(1000L),
-                new Date(2010,01, 01, 00, 00, 00),
-                new Date(2020,12, 31, 23, 59, 59),
-                Locale.getDefault(),
-                new X500Name("cn=Test User, ou=TinyCA, o=Cryptable, c=be"),
-                new SubjectPublicKeyInfo(ASN1Sequence.getInstance(subjectKeyPair.public.encoded)))
+        X509v3CertificateWrapper subjectX509 = createTestCertificate()
         SubjectKeyIdentifier subjectKeyIdentifier = new SubjectKeyIdentifier(
                 critical: false,
                 sha1KeyIdentifier: false
@@ -190,7 +157,7 @@ class SubjectKeyIdentifierSpec extends Specification{
         then:"Verify subject key Identifier in certificate"
         org.bouncycastle.asn1.x509.Extension extension = subjectCert.getExtension(
                 org.bouncycastle.asn1.x509.Extension.subjectKeyIdentifier)
-        assert extension.critical == false
+        assert !extension.critical
         assert extension.extnValue
 
         org.bouncycastle.asn1.x509.SubjectKeyIdentifier subjectKeyId =

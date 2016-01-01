@@ -47,7 +47,7 @@ class AlgorithmSettingsSpec extends Specification {
 
     void "Test for an invalid algorithm settings, missing algorthimSetting encode"() {
         given: "missing signatureAlgorithm in Algorithm settings"
-        AlgorithmSettings algorithmSettings = new AlgorithmSettings(
+        def algorithmSettings = new AlgorithmSettings(
                 keyLength: KeyLength.ECGOST_CRYPTOPR_A
         )
 

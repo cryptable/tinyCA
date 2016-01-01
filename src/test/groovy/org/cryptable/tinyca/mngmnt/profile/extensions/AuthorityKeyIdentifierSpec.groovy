@@ -23,15 +23,9 @@ import java.security.Security
  *
  * Created by davidtillemans on 27/12/15.
  */
-class AuthorityKeyIdentifierSpec extends Specification {
+class AuthorityKeyIdentifierSpec extends Specification implements TestCATrait{
 
     def jsonSlurper = new JsonSlurper()
-
-    X509CertificateHolder caCertificate
-
-    ContentSigner caSigner
-
-    KeyPairGenerator keyPairGenerator
 
     /**
      * Create a simple selfsigned CA
@@ -39,20 +33,7 @@ class AuthorityKeyIdentifierSpec extends Specification {
      * @return
      */
     def setup() {
-        Security.addProvider(new BouncyCastleProvider());
-        keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
-        keyPairGenerator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        caSigner  = new JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build(keyPair.private);
-        def name = new X500Name("cn=CA, o=Cryptable, ou=TinyCA")
-        X509v3CertificateBuilder x509v3CertificateBuilder = new JcaX509v3CertificateBuilder(
-                name,
-                new BigInteger(1),
-                new Date(2010, 10, 22, 00, 00, 00), new Date(2030, 10, 22, 00, 00, 00),
-                name,
-                keyPair.public)
-        caCertificate = x509v3CertificateBuilder.build(caSigner)
-
+        caInit()
     }
 
     def cleanup() {
@@ -122,14 +103,7 @@ class AuthorityKeyIdentifierSpec extends Specification {
 
     void "create encoded AuthorityKeyIdentifier with issuerNameAndSerialNumber"() {
         given: "An AuthorityKeyIdentifier"
-        KeyPair subjectKeyPair = keyPairGenerator.generateKeyPair()
-        X509v3CertificateWrapper subjectX509 = new X509v3CertificateWrapper(caCertificate,
-                BigInteger.valueOf(1000L),
-                new Date(2010,01, 01, 00, 00, 00),
-                new Date(2020,12, 31, 23, 59, 59),
-                Locale.getDefault(),
-                new X500Name("cn=Test User, ou=TinyCA, o=Cryptable, c=be"),
-                new SubjectPublicKeyInfo(ASN1Sequence.getInstance(subjectKeyPair.public.encoded)))
+        X509v3CertificateWrapper subjectX509 = createTestCertificate()
         AuthorityKeyIdentifier authorityKeyIdentifier = new AuthorityKeyIdentifier(
                 critical: false,
                 issuerNameAndSerialNumber: true
@@ -155,14 +129,7 @@ class AuthorityKeyIdentifierSpec extends Specification {
 
     void "create encoded AuthorityKeyIdentifier without issuerNameAndSerialNumber"() {
         given: "An AuthorityKeyIdentifier"
-        KeyPair subjectKeyPair = keyPairGenerator.generateKeyPair()
-        X509v3CertificateWrapper subjectX509 = new X509v3CertificateWrapper(caCertificate,
-                BigInteger.valueOf(1000L),
-                new Date(2010,01, 01, 00, 00, 00),
-                new Date(2020,12, 31, 23, 59, 59),
-                Locale.getDefault(),
-                new X500Name("cn=Test User, ou=TinyCA, o=Cryptable, c=be"),
-                new SubjectPublicKeyInfo(ASN1Sequence.getInstance(subjectKeyPair.public.encoded)))
+        X509v3CertificateWrapper subjectX509 = createTestCertificate()
         AuthorityKeyIdentifier authorityKeyIdentifier = new AuthorityKeyIdentifier(
                 critical: false,
                 issuerNameAndSerialNumber: false
